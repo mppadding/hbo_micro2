@@ -36,4 +36,4 @@ flash:
 
 clean:
 	@echo "Cleaning"
-	@rm -f $(BDIR)/*.o $(BDIR)/$(OUT).elf
+	@rm -f $(BDIR)/*.o $(BDIR)/$(OUT).elf $(BDIR)/$(OUT).hex

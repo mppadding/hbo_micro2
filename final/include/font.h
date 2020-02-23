@@ -15,9 +15,21 @@ namespace Font {
 
     constexpr uint8_t SPACE[WIDTH] = {0, 0, 0, 0, 0};
 
-    constexpr uint8_t A[WIDTH] = {0, 0, 0, 0, 0}; // TODO
+    constexpr uint8_t A[WIDTH] = {
+        0b1111110,
+        0b0001001,
+        0b0001001,
+        0b0001001,
+        0b1111110,
+    };
     constexpr uint8_t B[WIDTH] = {0, 0, 0, 0, 0}; // TODO
-    constexpr uint8_t C[WIDTH] = {0, 0, 0, 0, 0}; // TODO
+    constexpr uint8_t C[WIDTH] = {
+        0b0111110,
+        0b1000001,
+        0b1000001,
+        0b1000001,
+        0b1000001,
+    };
     constexpr uint8_t D[WIDTH] = {
         0b1111111,
         0b1000001,
@@ -31,6 +43,22 @@ namespace Font {
         0b1001001,
         0b1000001,
         0b1000001,
+    };
+
+    constexpr uint8_t F[WIDTH] = {
+        0b1111111,
+        0b0001001,
+        0b0001001,
+        0b0000001,
+        0b0000001,
+    };
+
+    constexpr uint8_t G[WIDTH] = {
+        0b1111111,
+        0b1000001,
+        0b1000001,
+        0b1001001,
+        0b1111001,
     };
 
     constexpr uint8_t H[WIDTH] = {

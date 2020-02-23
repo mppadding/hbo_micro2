@@ -1,3 +1,7 @@
+/***
+ * Header file for OLED driver (SSD1306)
+ * Datasheet: https://cdn-shop.adafruit.com/datasheets/SSD1306.pdf
+ **/
 #ifndef OLED_H_
 #define OLED_H_
 
@@ -41,6 +45,38 @@ namespace OLED {
         constexpr uint8_t VCC_083 = 0x30;
     }
 
+    namespace PAGE {
+        constexpr uint8_t PAGE0 = 0x00;
+        constexpr uint8_t PAGE1 = 0x01;
+        constexpr uint8_t PAGE2 = 0x02;
+        constexpr uint8_t PAGE3 = 0x03;
+        constexpr uint8_t PAGE4 = 0x04;
+        constexpr uint8_t PAGE5 = 0x05;
+        constexpr uint8_t PAGE6 = 0x06;
+        constexpr uint8_t PAGE7 = 0x07;
+    }
+
+    namespace SCROLL_INTERVAL {
+        constexpr uint8_t FRAMES_2      = 0b111;
+        constexpr uint8_t FRAMES_3      = 0b100;
+        constexpr uint8_t FRAMES_4      = 0b101;
+        constexpr uint8_t FRAMES_5      = 0b000;
+        constexpr uint8_t FRAMES_25     = 0b110;
+        constexpr uint8_t FRAMES_64     = 0b001;
+        constexpr uint8_t FRAMES_128    = 0b010;
+        constexpr uint8_t FRAMES_256    = 0b011;
+    }
+
+    namespace HORIZONTAL_SCROLL {
+        constexpr uint8_t RIGHT = 0x00;
+        constexpr uint8_t LEFT  = 0x01;
+    }
+
+    namespace HOR_VER_SCROLL {
+        constexpr uint8_t RIGHT = 0b01;
+        constexpr uint8_t LEFT  = 0b10;
+    }
+
     // Use base, then or with the wanted configuration
     namespace COM_HARDWARE {
         constexpr uint8_t BASE                      = 0x02;
@@ -72,11 +108,12 @@ namespace OLED {
 
         /***
          * Scrolling commands
-         * TODO: 0x29/0x2A
          **/
-        constexpr uint8_t DEACTIVATE_SCROLL     = 0x2E;
-        constexpr uint8_t ACTIVATE_SCROLL       = 0x2F;
-        constexpr uint8_t VERTICAL_SCROLL_AREA  = 0xA3;
+        constexpr uint8_t HORIZONTAL_SCROLL_SETUP   = 0x26;
+        constexpr uint8_t HOR_VER_SCROLL_SETUP      = 0x28;
+        constexpr uint8_t DEACTIVATE_SCROLL         = 0x2E;
+        constexpr uint8_t ACTIVATE_SCROLL           = 0x2F;
+        constexpr uint8_t VERTICAL_SCROLL_AREA      = 0xA3;
 
         /***
          * Addressing setting commands
@@ -180,7 +217,7 @@ namespace OLED {
         SPI::transmit(0x7F);
 
         SPI::transmit(Command::MEMORY_ADDRESS_MODE);
-        SPI::transmit(MEM_ADDRESS_MODES::VERTICAL);
+        SPI::transmit(MEM_ADDRESS_MODES::HORIZONTAL);
 
         // Set contrast
         SPI::transmit(Command::CONTRAST_CONTROL);
@@ -196,9 +233,73 @@ namespace OLED {
         deselect();
     }
 
-    void set_page(uint8_t addr) {
+    /***
+     * Setup horizontal scrolling.
+     * Must call enable_scrolling() afterwards.
+     *
+     * Arguments:
+     * bool     left        Dictates scroll direction
+     * uint8_t  begin_page  Beginning page of scrolling, see OLED::PAGE::(...)
+     * uint8_t  end_page    Ending page of scrolling, see OLED::PAGE::(...)
+     * uint8_t  interval    Scrolling interval, see OLED::SCROLL_INTERVAL::(...)
+     **/
+    void set_horizontal_scroll(bool left, uint8_t begin_page, uint8_t end_page, uint8_t interval) {
         select();
         dc_command();
+
+        SPI::transmit(Command::HORIZONTAL_SCROLL_SETUP | (left ? HORIZONTAL_SCROLL::LEFT : HORIZONTAL_SCROLL::RIGHT));
+        SPI::transmit(0x00); // Dummy byte
+        SPI::transmit(begin_page);
+        SPI::transmit(interval);
+        SPI::transmit(end_page);
+        SPI::transmit(0x00); // Dummy byte
+        SPI::transmit(0xFF); // Dummy byte
+    }
+
+    /***
+     * Setup horizontal and vertical scrolling
+     * Must call enable_scrolling() afterwards.
+     *
+     * Arguments:
+     * bool     left            Dictates scroll direction
+     * uint8_t  begin_page      Beginning page of scrolling, see OLED::PAGE::(...)
+     * uint8_t  end_page        Ending page of scrolling, see OLED::PAGE::(...)
+     * uint8_t  interval        Scrolling interval, see OLED::SCROLL_INTERVAL::(...)
+     * uint8_t  vertical_offset Vertical offset from 0x00-0x3F (in rows)
+     **/
+    void set_hor_ver_scroll(bool left, uint8_t begin_page, uint8_t end_page, uint8_t interval, uint8_t vertical_offset) {
+        select();
+        dc_command();
+
+        SPI::transmit(Command::HOR_VER_SCROLL_SETUP | (left ? HOR_VER_SCROLL::LEFT : HOR_VER_SCROLL::RIGHT));
+        SPI::transmit(0x00); // Dummy byte
+        SPI::transmit(begin_page);
+        SPI::transmit(interval);
+        SPI::transmit(end_page);
+        SPI::transmit(vertical_offset);
+
+        deselect();
+    }
+
+    /***
+     * Enable scrolling, must be called after any scroll setup.
+     * Note: only the last scroll setup will be used, all previous will be overwritten.
+     **/
+    void enable_scrolling() { select(); dc_command(); SPI::transmit(Command::ACTIVATE_SCROLL); deselect(); }
+
+    /***
+     * Disables scrolling.
+     * Note: RAM must be rewritten afterwards.
+     **/
+    void disable_scrolling() { select(); dc_command(); SPI::transmit(Command::DEACTIVATE_SCROLL); deselect(); }
+
+    void set_invert(bool invert) {
+        select();
+        dc_command();
+
+        SPI::transmit(invert ? Command::INVERSE_DISPLAY : Command::NORMAL_DISPLAY);
+
+        deselect();
     }
 
     void set_contrast(uint8_t contrast) {
@@ -218,6 +319,34 @@ namespace OLED {
         SPI::transmit(byte);
 
         deselect();
+    }
+
+    void set_column(uint8_t column) {
+        select();
+        dc_command();
+
+        SPI::transmit(Command::COLUMN_ADDRESS);
+        SPI::transmit(column);
+        SPI::transmit(0xFF);
+
+        deselect();
+    }
+
+    void set_page(uint8_t page) {
+        select();
+        dc_command();
+
+        SPI::transmit(Command::PAGE_ADDRESS);
+        SPI::transmit(page);
+        SPI::transmit(0xFF);
+
+        deselect();
+    }
+
+    void clear_display() {
+        for(uint16_t i = 0; i < (8 * 128); i++) {
+            OLED::write_byte(0x00);
+        }
     }
 }
 

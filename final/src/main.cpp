@@ -4,6 +4,7 @@
 #include <util/delay.h>
 
 #include "oled.h"
+#include "font.h"
 
 int main(void)
 {
@@ -18,69 +19,24 @@ int main(void)
     OLED::start(conf);
     _delay_ms(10);
 
-    for(uint16_t i = 0; i < (4 * 128 /* 127*/); i++) {
-        OLED::write_byte(0x00);
-        OLED::write_byte(0x00);
-    }
+    OLED::clear_display();
 
-    // H
-    OLED::write_byte(0b01111111);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b00001000);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b00001000);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b00001000);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01111111);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::H[i]); }
+    OLED::write_byte(Font::SEPARATOR);
 
-    // Sep
-    for(uint8_t i = 0; i < 8; i++) { OLED::write_byte(0x00); }
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::E[i]); }
+    OLED::write_byte(Font::SEPARATOR);
 
-    // E
-    OLED::write_byte(0b01111111);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01001001);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01001001);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01000001);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01000001);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::L[i]); }
+    OLED::write_byte(Font::SEPARATOR);
 
-    // Sep
-    for(uint8_t i = 0; i < 8; i++) { OLED::write_byte(0x00); }
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::L[i]); }
+    OLED::write_byte(Font::SEPARATOR);
 
-    // L
-    for(uint8_t x = 0; x < 2; x++) {
-        OLED::write_byte(0b01111111);
-        for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-        OLED::write_byte(0b01000000);
-        for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-        OLED::write_byte(0b01000000);
-        for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-        OLED::write_byte(0b01000000);
-        for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-        OLED::write_byte(0b01000000);
-        for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::O[i]); }
 
-        // Sep
-        for(uint8_t i = 0; i < 8; i++) { OLED::write_byte(0x00); }
-    }
-
-    // O
-    OLED::write_byte(0b01111111);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01000001);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01000001);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01000001);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
-    OLED::write_byte(0b01111111);
-    for(uint8_t i = 0; i < 7; i++) { OLED::write_byte(0x00); }
+    OLED::set_horizontal_scroll(false, OLED::PAGE::PAGE0, OLED::PAGE::PAGE7, OLED::SCROLL_INTERVAL::FRAMES_4);
+    OLED::enable_scrolling();
 
     while (1)
     {

@@ -23,17 +23,28 @@ int main(void)
 
     for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::H[i]); }
     OLED::write_byte(Font::SEPARATOR);
-
     for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::E[i]); }
     OLED::write_byte(Font::SEPARATOR);
-
     for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::L[i]); }
     OLED::write_byte(Font::SEPARATOR);
-
     for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::L[i]); }
     OLED::write_byte(Font::SEPARATOR);
-
     for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::O[i]); }
+    OLED::write_byte(Font::SEPARATOR);
+
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::SPACE[i]); }
+    OLED::write_byte(Font::SEPARATOR);
+
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::W[i]); }
+    OLED::write_byte(Font::SEPARATOR);
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::O[i]); }
+    OLED::write_byte(Font::SEPARATOR);
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::R[i]); }
+    OLED::write_byte(Font::SEPARATOR);
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::L[i]); }
+    OLED::write_byte(Font::SEPARATOR);
+    for(uint8_t i = 0; i < Font::WIDTH; i++) { OLED::write_byte(Font::D[i]); }
+    OLED::write_byte(Font::SEPARATOR);
 
     OLED::set_horizontal_scroll(false, OLED::PAGE::PAGE0, OLED::PAGE::PAGE7, OLED::SCROLL_INTERVAL::FRAMES_4);
     OLED::enable_scrolling();

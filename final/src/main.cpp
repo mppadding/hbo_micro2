@@ -8,7 +8,7 @@
 
 int main(void)
 {
-    OLED::init();
+    /* OLED::init();
     _delay_ms(10);
 
     OLED::Configuration conf = {
@@ -47,7 +47,7 @@ int main(void)
     OLED::write_byte(Font::SEPARATOR);
 
     OLED::set_horizontal_scroll(false, OLED::PAGE::PAGE0, OLED::PAGE::PAGE7, OLED::SCROLL_INTERVAL::FRAMES_4);
-    OLED::enable_scrolling();
+    OLED::enable_scrolling(); */
 
     while (1)
     {

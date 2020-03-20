@@ -2,22 +2,16 @@
 #define GYRO_H_
 
 #include <avr/io.h>
-#include "i2c.h"
+#include <util/delay.h>
+
+#include "twi.h"
+#include "logger.h"
+
+#define GYRO_BIAS_X 50
+#define GYRO_BIAS_Y 0
 
 namespace Gyro {
     constexpr uint8_t ADDR = 0xD0;
-
-    // Init: [0xD0 0x6B 0x00]
-    //
-    // Gyro X: [0xD0 0x43] [0xD1 rr]
-    // Gyro Y: [0xD0 0x45] [0xD1 rr]
-    // Gyro Z: [0xD0 0x47] [0xD1 rr]
-    //
-    // Accel X: [0xD0 0x3B] [0xD1 rr]
-    // Accel Y: [0xD0 0x3D] [0xD1 rr]
-    // Accel Z: [0xD0 0x3F] [0xD1 rr]
-    //
-    // Temp: [0xD0 0x41] [0xD1 rr]
 
     namespace Gyroscope {
         constexpr uint8_t GYRO_XH = 0x43;
@@ -35,6 +29,23 @@ namespace Gyro {
         constexpr uint8_t GYRO_Z16 = GYRO_ZH;
 
         constexpr uint8_t CONFIG = 0x1B;
+
+        constexpr uint8_t RANGE_250     = 0x00;
+        constexpr uint8_t RANGE_500     = 0x08;
+        constexpr uint8_t RANGE_1000    = 0x10;
+        constexpr uint8_t RANGE_2000    = 0x18;
+
+        constexpr uint8_t GYRO_OFFSET_XH = 0x13;
+        constexpr uint8_t GYRO_OFFSET_XL = 0x14;
+        constexpr uint8_t GYRO_OFFSET_X = GYRO_OFFSET_XH;
+
+        constexpr uint8_t GYRO_OFFSET_YH = 0x15;
+        constexpr uint8_t GYRO_OFFSET_YL = 0x16;
+        constexpr uint8_t GYRO_OFFSET_Y = GYRO_OFFSET_YH;
+
+        constexpr uint8_t GYRO_OFFSET_ZH = 0x17;
+        constexpr uint8_t GYRO_OFFSET_ZL = 0x18;
+        constexpr uint8_t GYRO_OFFSET_Z = GYRO_OFFSET_ZH;
     }
 
     namespace Accelerometer {
@@ -115,6 +126,11 @@ namespace Gyro {
         constexpr uint8_t FIFO_ENABLE               = (1 << 6);
         constexpr uint8_t I2C_MASTER_ENABLE         = (1 << 5);
         // I2C_IF_DIS removed due to always writing 0 to this register for this IC
+
+        // Not in the datasheet, can be found here https://invensense.tdk.com/developers/software-downloads/
+        // in MPU/eMD 6.12
+        constexpr uint8_t DMP_RESET                 = (1 << 3);
+
         constexpr uint8_t FIFO_RESET                = (1 << 2);
         constexpr uint8_t I2C_MASTER_RESET          = (1 << 1);
         constexpr uint8_t SIGNAL_REGISTERS_RESET    = (1 << 0);
@@ -164,6 +180,10 @@ namespace Gyro {
     constexpr uint8_t CONFIG            = 0x1A; // TODO: Fix me
     constexpr uint8_t MOTION_THRESHOLD  = 0x1F;
 
+    constexpr uint8_t BANK_SELECT = 0x6D;
+    constexpr uint8_t MEMORY_READ_WRITE = 0x6F;
+    constexpr uint8_t PROGRAM_START_H = 0x70;
+
     constexpr uint8_t FIFO_COUNT_H  = 0x72;
     constexpr uint8_t FIFO_COUNT_L  = 0x73;
     constexpr uint8_t FIFO_COUNT    = FIFO_COUNT_H;
@@ -171,8 +191,68 @@ namespace Gyro {
     constexpr uint8_t FIFO_READ_WRITE = 0x74;
     constexpr uint8_t WHO_AM_I = 0x75;
 
-    void init() {
-        I2C::init();
+    uint16_t read_gyro_x() {
+        uint8_t buff[2] = {};
+        TWI::read(ADDR, Gyroscope::GYRO_X16, 2, buff);
+
+        return (buff[0] << 8) | buff[1];
+    }
+
+    uint16_t read_accel_x() {
+        uint8_t buff[2] = {};
+        TWI::read(ADDR, Accelerometer::ACCEL_X16, 2, buff);
+
+        return (buff[0] << 8) | buff[1];
+    }
+
+    void read_accel(uint8_t* buff) {
+        TWI::read(ADDR, Accelerometer::ACCEL_XH, 6, buff);
+    }
+
+    void set_biases() {
+        // Read current config
+        uint8_t config[1];
+        TWI::read(ADDR, Gyroscope::CONFIG, 1, config);
+
+        // Write new config: no self-test and sensitivity at 1000 Deg/s
+        uint8_t new_config[2] = { Gyroscope::CONFIG, 0x16 };
+        TWI::write_registers(ADDR, 2, new_config);
+
+        // Read all axes
+        uint8_t data[6];
+        TWI::read(ADDR, Gyroscope::GYRO_XH, 6, data);
+
+        // Write offsets
+        TWI::write(ADDR, Gyroscope::GYRO_OFFSET_XH, 6, data);
+
+        // Write previous config
+        TWI::write(ADDR, Gyroscope::CONFIG, 1, config);
+    }
+
+    bool init(uint8_t power_1) {
+        // Initial power on delay
+        _delay_ms(150);
+
+
+        // First we check if the chip is correct by polling the WHO_AM_I register
+        uint8_t chip_id[1] = {};
+        TWI::read(ADDR, WHO_AM_I, 1, chip_id);
+
+        //if(chip_id[0] != ADDR)
+        //    return false;
+
+        uint8_t config[6] = {
+            PowerManagement::R_1::REGISTER, power_1,
+        //    CONFIG, 0x06,
+            Gyroscope::CONFIG, Gyroscope::RANGE_250,
+        };
+
+        TWI::write_registers(ADDR, 4, config);
+
+        // Set biases
+        set_biases();
+
+        return true;
     }
 
 }

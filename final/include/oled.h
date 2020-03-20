@@ -344,8 +344,20 @@ namespace OLED {
     }
 
     void clear_display() {
+        set_column(0);
+        set_page(0);
         for(uint16_t i = 0; i < (8 * 128); i++) {
             OLED::write_byte(0x00);
+        }
+        set_column(0);
+        set_page(0);
+    }
+
+    void write_buffer(uint8_t* buff) {
+        set_column(0);
+        set_page(0);
+        for(uint16_t i = 0; i < (8 * 128); i++) {
+            OLED::write_byte(buff[i]);
         }
     }
 }

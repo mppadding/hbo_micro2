@@ -37,7 +37,7 @@ namespace UART {
      *
      * @param[in]   c   Character to send
      */
-    void putchar(char c) {
+    void _putchar(char c) {
         /* Also add a carriage return whenever a newline is added (\r\n) */
         if (c == '\n') {
             putchar('\r');
@@ -56,7 +56,7 @@ namespace UART {
      *
      * @retval  char     Character from UART
      */
-    char getchar() {
+    char _getchar() {
         loop_until_bit_is_set(UCSR0A, RXC0);
         return UDR0;
     }

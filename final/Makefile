@@ -7,8 +7,10 @@
 
 # AVR configuration
 MCU    = atmega328p
-PORT   = /dev/avr-nano
-AVR_BAUD = 57600
+#PORT   = /dev/avr-nano
+#AVR_BAUD = 57600
+PORT = /dev/avr-uno
+AVR_BAUD = 115200
 
 F_CPU  = 16000000
 F_UART = 115200
@@ -62,6 +64,10 @@ flash:
 	@echo " Flashing project"
 	@echo -n ""
 	@avrdude -b $(AVR_BAUD) -e -c arduino -P $(PORT) -p $(MCU) -U flash:w:$(BDIR)/$(OUT).hex:i -q
+
+test:
+	@echo "Testing"
+	@ipecmd -TPSNAP -PATmega328P -ORIisp -F$(BDIR)/$(OUT).hex -M
 
 clean:
 	@echo ""

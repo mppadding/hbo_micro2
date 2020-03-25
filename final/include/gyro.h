@@ -6,6 +6,7 @@
 
 #include "twi.h"
 #include "logger.h"
+#include "uart.h"
 
 #define GYRO_BIAS_X 50
 #define GYRO_BIAS_Y 0
@@ -233,24 +234,11 @@ namespace Gyro {
         // Initial power on delay
         _delay_ms(150);
 
-
-        // First we check if the chip is correct by polling the WHO_AM_I register
-        uint8_t chip_id[1] = {};
-        TWI::read(ADDR, WHO_AM_I, 1, chip_id);
-
-        //if(chip_id[0] != ADDR)
-        //    return false;
-
         uint8_t config[6] = {
             PowerManagement::R_1::REGISTER, power_1,
-        //    CONFIG, 0x06,
-            Gyroscope::CONFIG, Gyroscope::RANGE_250,
         };
 
-        TWI::write_registers(ADDR, 4, config);
-
-        // Set biases
-        set_biases();
+        TWI::write_registers(ADDR, 2, config);
 
         return true;
     }

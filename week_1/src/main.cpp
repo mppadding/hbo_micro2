@@ -22,7 +22,6 @@ int main(void)
 	
     while (1)
     {
-        PORTD = (Converter::low_read() & 0xF0);
         // Write to led when uart has data
 		if(UART::can_receive()) {
 			char data = UART::getchar();
